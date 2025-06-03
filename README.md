@@ -19,3 +19,20 @@ HoneyDrop/
 - 💬 **API do WhatsApp** (notificações automáticas)
 
 ---
+# Prints do Grafana
+
+# Nível de ração ao longo do tempo
+![imagem1](imagem1.jpeg)
+
+# Ração abaixo do limite
+![imagem2](imagem2.jpeg)
+
+# Alerta configurado
+![imagem3](imagem3.jpeg)
+
+# Outros exemplos de dashboards
+![imagem4](imagem4.jpeg)
+![imagem5](imagem5.jpeg)
+![imagem6](imagem6.jpeg)
+![imagem7](imagem7.jpeg)
+
