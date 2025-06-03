@@ -1,0 +1,345 @@
+[
+    {
+        "id": "9c6f69cda53a02a1",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "237358b4e6f6064a",
+        "type": "node-red-contrib-whatsapp-cmb-send-message",
+        "z": "9c6f69cda53a02a1",
+        "name": "voluntários",
+        "credtype": "account",
+        "account": "e7f64f4eb3a4b17d",
+        "text": "⚠️ HoneyDrop: peso abaixo do limite! Repor ração no comedouro.",
+        "phonenumbervalue": "",
+        "apikeyvalue": "",
+        "apikeyinputtypemessage": "msg",
+        "phonenumberinputtypemessage": "msg",
+        "inputtypemessage": "str",
+        "rejectssl": false,
+        "x": 1250,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_in",
+        "type": "mqtt in",
+        "z": "9c6f69cda53a02a1",
+        "name": "Dispositivo 1",
+        "topic": "/honeydrop/peso",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "fcb3d59ff52d0df3",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 70,
+        "y": 420,
+        "wires": [
+            [
+                "convert_to_number"
+            ]
+        ]
+    },
+    {
+        "id": "convert_to_number",
+        "type": "function",
+        "z": "9c6f69cda53a02a1",
+        "name": "Converter para número",
+        "func": "msg.payload = Number(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 420,
+        "wires": [
+            [
+                "check_weight",
+                "21966b5761e86957"
+            ]
+        ]
+    },
+    {
+        "id": "check_weight",
+        "type": "switch",
+        "z": "9c6f69cda53a02a1",
+        "name": "Peso < 50",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lt",
+                "v": "50",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 640,
+        "y": 420,
+        "wires": [
+            [
+                "alert_message"
+            ]
+        ]
+    },
+    {
+        "id": "alert_message",
+        "type": "function",
+        "z": "9c6f69cda53a02a1",
+        "name": "Mensagem de alerta",
+        "func": "msg.payload = \"⚠️ HoneyDrop: peso abaixo do limite! Valor lido: \" + msg.payload + \"g.\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 420,
+        "wires": [
+            [
+                "debug_msg",
+                "aa0a4e27b6e0e36a"
+            ]
+        ]
+    },
+    {
+        "id": "debug_msg",
+        "type": "debug",
+        "z": "9c6f69cda53a02a1",
+        "name": "Mensagem gerada",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1070,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "aa0a4e27b6e0e36a",
+        "type": "delay",
+        "z": "9c6f69cda53a02a1",
+        "name": "Delay de msg",
+        "pauseType": "rate",
+        "timeout": "2",
+        "timeoutUnits": "minutes",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "hour",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": true,
+        "outputs": 1,
+        "x": 1060,
+        "y": 420,
+        "wires": [
+            [
+                "237358b4e6f6064a"
+            ]
+        ]
+    },
+    {
+        "id": "b8abb17e8243829c",
+        "type": "influxdb out",
+        "z": "9c6f69cda53a02a1",
+        "influxdb": "65700ae232ae2d22",
+        "name": "",
+        "measurement": "peso_reserva",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Nm",
+        "bucket": "reserva_racao",
+        "x": 860,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "21966b5761e86957",
+        "type": "function",
+        "z": "9c6f69cda53a02a1",
+        "name": "filtro de msg",
+        "func": "const tolerancia = 2;\nlet ultimo = context.get('ultimo') || 0;\n\nif (Math.abs(msg.payload - ultimo) >= tolerancia) {\n  context.set('ultimo', msg.payload);\n  return msg;\n}\n\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 500,
+        "wires": [
+            [
+                "b8abb17e8243829c"
+            ]
+        ]
+    },
+    {
+        "id": "0bbbaa81f352d601",
+        "type": "mqtt in",
+        "z": "9c6f69cda53a02a1",
+        "name": "Dispositivo 2",
+        "topic": "/honeydrop/pote",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "fcb3d59ff52d0df3",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 660,
+        "wires": [
+            [
+                "5702bdbbc16cc95d"
+            ]
+        ]
+    },
+    {
+        "id": "5702bdbbc16cc95d",
+        "type": "function",
+        "z": "9c6f69cda53a02a1",
+        "name": "Converter para número",
+        "func": "msg.payload = Number(msg.payload);\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 660,
+        "wires": [
+            [
+                "9fd2f639a0aaf80e"
+            ]
+        ]
+    },
+    {
+        "id": "9fd2f639a0aaf80e",
+        "type": "function",
+        "z": "9c6f69cda53a02a1",
+        "name": "Filtro com tolerância",
+        "func": "const tolerancia = 2;\nlet ultimo = context.get('ultimo') || 0;\n\nif (Math.abs(msg.payload - ultimo) >= tolerancia) {\n  context.set('ultimo', msg.payload);\n  return msg;\n}\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 660,
+        "wires": [
+            [
+                "5658aa06ca42f1c9",
+                "c62f30cc9d2ac069"
+            ]
+        ]
+    },
+    {
+        "id": "5658aa06ca42f1c9",
+        "type": "influxdb out",
+        "z": "9c6f69cda53a02a1",
+        "influxdb": "65700ae232ae2d22",
+        "name": "",
+        "measurement": "peso_pote",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Nm",
+        "bucket": "reserva_racao",
+        "x": 870,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "c62f30cc9d2ac069",
+        "type": "debug",
+        "z": "9c6f69cda53a02a1",
+        "name": "Envio Influx",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "e7f64f4eb3a4b17d",
+        "type": "node-red-contrib-whatsapp-cmb-account",
+        "name": "luiza"
+    },
+    {
+        "id": "fcb3d59ff52d0df3",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "65700ae232ae2d22",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB Cloud",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "https://us-east-1-1.aws.cloud2.influxdata.com",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    }
+]
